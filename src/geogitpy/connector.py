@@ -195,3 +195,6 @@ class Connector(object):
         
     def push(self, remote, branch, all):
         raise NotImplementedError
+
+    def status(self):
+        raise NotImplementedError
