@@ -29,9 +29,15 @@ class GeoserverConnectorTest(unittest.TestCase):
         self.assertDictEqual(self.gs.status(), {u'header': {u'branch': u'master'}, u'success': True})
 
     def test_revparse(self):
+        """
+        Tests the revparse function.
+        """
         response = self.gs.revparse('master')
-        self.assertTrue('Ref' in response)
-        self.assertTrue('success' in response)
+        self.assertTrue('name' in response)
+        self.assertTrue('objectId' in response)
+        self.assertEqual(response.get('name'), 'refs/heads/master')
+
+
 
 
 if __name__ == '__main__':

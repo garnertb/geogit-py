@@ -55,8 +55,7 @@ class GeoserverConnector(Connector):
             params = self.default_params().copy()
             params.update(dict(name=rev))
             r = requests.get(url, params=params)
-            response = self.parse_response(r.json())
-            print response
+            response = self.parse_response(r.json()).get('Ref')
             return response
         except Exception, e:
             print traceback.format_exc()
