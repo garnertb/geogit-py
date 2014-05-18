@@ -1,6 +1,7 @@
 import unittest
 from geogitpy.geoserverconnector import GeoserverConnector
 from geogitpy.repo import Repository
+from geogitpy.commit import Commit
 
 
 class Repo(object):
@@ -37,6 +38,14 @@ class GeoserverConnectorTest(unittest.TestCase):
         self.assertTrue('objectId' in response)
         self.assertEqual(response.get('name'), 'refs/heads/master')
 
+    def test_log(self):
+        """
+        Tests the log function.
+        """
+
+        response = self.gs.log()
+        self.assertTrue(len(response))
+        self.assertTrue(all(map(lambda c: isinstance(c, Commit), response)))
 
 
 

@@ -1,3 +1,4 @@
+import logging
 import re
 import requests
 from connector import Connector
@@ -5,6 +6,8 @@ from commit import Commit
 import xml.etree.ElementTree as ET
 from geogitexception import GeoGitException
 import traceback
+
+logger = logging.getLogger(__name__)
 
 SHA_MATCHER = re.compile(r"\b([a-f0-9]{40})\b")
 
@@ -30,6 +33,17 @@ class GeoserverConnector(Connector):
         """
         return dict(output_format='json')
 
+    def request(self, url, method='get', **kwargs):
+        """
+        A convenience method for making requests to the Geoserver GeoGit API.
+        """
+        kwargs.setdefault('params', self.default_params())
+        kwargs.setdefault('auth', (self.username, self.password))
+
+        logger.debug('Making a {0} request, with the following parameters: {1}'.format(method.upper(), kwargs))
+
+        return getattr(requests, method)(url, **kwargs)
+
     def checkisrepo(self):
         """
         Checks a GeoGit repository by running the status command.
@@ -41,8 +55,7 @@ class GeoserverConnector(Connector):
         Returns the output of the status command.
         """
         try:
-            url = self.repo.url + '/status'
-            r = requests.get(url, auth=(self.username, self.password), params=self.default_params())
+            r = self.request(self.repo.url + '/status')
             response = self.parse_response(r.json())
             return response
         except Exception, e:
@@ -50,19 +63,52 @@ class GeoserverConnector(Connector):
             raise GeoGitException("Unable to get the repo status.")
 
     def revparse(self, rev):
+        """
+        Returns the output of the refparse command.
+        """
         try:
             url = self.repo.url + '/refparse'
             params = self.default_params().copy()
             params.update(dict(name=rev))
-            r = requests.get(url, params=params)
+            r = self.request(url, params=params)
             response = self.parse_response(r.json()).get('Ref')
             return response
         except Exception, e:
             print traceback.format_exc()
             raise GeoGitException("Reference %s not found" % rev)
 
+    def parse_commit(self, commit):
+        """
+        Parses the web response into a Commit object.
+        """
 
-    @staticmethod
-    def createrepo(url, name):
-        r = requests.put(url, data = name)
-        r.raise_for_status()
+        author = commit.get('author', {})
+        committer = commit.get('committer', {})
+
+        return Commit(self.repo,
+                      commitid=commit.get('id'),
+                      treeid=commit.get('tree'),
+                      parents=commit.get('parents'),
+                      message=commit.get('message'),
+                      authorname=author.get('name'),
+                      authordate=author.get('timestamp'),
+                      committername=committer.get('name'),
+                      committerdate=committer.get('timestamp')
+                      )
+
+    def log(self, **kwargs):
+        """
+        Returns the output of the log command.
+        """
+
+        try:
+            kwargs.update(self.default_params())
+            r = self.request(self.repo.url + '/log', params=kwargs)
+            response = self.parse_response(r.json())
+            commits = response.get('commit', [])
+            return map(lambda c: self.parse_commit(c), commits)
+
+        except Exception, e:
+            print traceback.format_exc()
+            raise GeoGitException("Unable to retrieve the repositories log.")
+
