@@ -47,6 +47,22 @@ class GeoserverConnectorTest(unittest.TestCase):
         self.assertTrue(len(response))
         self.assertTrue(all(map(lambda c: isinstance(c, Commit), response)))
 
+    def test_version(self):
+        """
+        Tests the version function.
+        """
+        response = self.gs.version()
+        self.assertTrue('BuildTime' in response)
+        self.assertTrue('BuildUserName' in response)
+        self.assertTrue('BuildUserEmail' in response)
+        self.assertTrue('GitBranch' in response)
+        self.assertTrue('GitCommitID' in response)
+        self.assertTrue('GitCommitTime' in response)
+        self.assertTrue('GitCommitAuthorName' in response)
+        self.assertTrue('GitCommitAuthorEmail' in response)
+        self.assertTrue('GitCommitMessage' in response)
+
+
 
 
 if __name__ == '__main__':

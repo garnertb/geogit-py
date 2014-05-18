@@ -112,3 +112,14 @@ class GeoserverConnector(Connector):
             print traceback.format_exc()
             raise GeoGitException("Unable to retrieve the repositories log.")
 
+    def version(self):
+        """
+        Returns the output of the version command.
+        """
+        try:
+            r = self.request(self.repo.url + '/version')
+            return self.parse_response(r.json())
+
+        except Exception, e:
+            print traceback.format_exc()
+            raise GeoGitException("Unable to retrieve version output.")
