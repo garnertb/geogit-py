@@ -75,6 +75,26 @@ class GeoserverConnectorTest(unittest.TestCase):
         response = self.gs.end_transaction(transaction_id=id)
         self.assertTrue(response.get('success'))
 
+    def test_push(self):
+        """
+        Tests the push/pull operations.
+        """
+        #TODO: Needs standalone integration test.
+        response = self.gs.push(remote='aws', ref='master:master')
+        self.assertTrue('Push' in response)
+        self.assertTrue('dataPushed' in response)
+        self.assertTrue(response.get('success'))
+
+    def test_pull(self):
+        """
+        Tests the push/pull operations.
+        """
+        #TODO: Needs standalone integration test.
+        response = self.gs.pull(remote='aws', ref='master:master')
+        self.assertTrue('Pull' in response)
+        self.assertTrue('Fetch' in response['Pull'])
+        self.assertTrue(response.get('success'))
+
 
 if __name__ == '__main__':
     unittest.main()

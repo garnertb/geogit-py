@@ -113,6 +113,27 @@ class GeoserverConnector(Connector):
                       committerdate=committer.get('timestamp')
                       )
 
+    def push_pull(self, remote, ref, command='push', **kwargs):
+        """
+        A base method for the push and pull operations.
+        """
+        kwargs.update(self.default_params(remoteName=remote, ref=ref))
+        r = self.request(self.repo.url + '/{0}'.format(command), params=kwargs)
+        response = self.parse_response(r.json())
+        return response
+
+    def pull(self, remote, ref, **kwargs):
+        """
+        Returns the output of the push command.
+        """
+        return self.push_pull(remote, ref, command='pull', **kwargs)
+
+    def push(self, remote, ref, **kwargs):
+        """
+        Returns the output of the push command.
+        """
+        return self.push_pull(remote, ref, **kwargs)
+
     def log(self, **kwargs):
         """
         Returns the output of the log command.
