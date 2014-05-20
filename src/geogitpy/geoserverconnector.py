@@ -13,7 +13,12 @@ SHA_MATCHER = re.compile(r"\b([a-f0-9]{40})\b")
 
 
 class GeoserverConnector(Connector):
-    """ A connector that connects to a GeoGit repo through the Geoserver GeoGit API."""
+    """
+    A connector that connects to a GeoGit repo through the Geoserver GeoGit API.
+    Implements commands from:
+
+    https://github.com/boundlessgeo/GeoGit/blob/master/src/web/api/src/main/java/org/geogit/web/api/CommandBuilder.java
+    """
 
     def __init__(self, username=None, password=None):
 
@@ -45,6 +50,11 @@ class GeoserverConnector(Connector):
 
         return getattr(requests, method)(url, **kwargs)
 
+    def base_command(self, command, **kwargs):
+        r = self.request(self.repo.url + '/{0}'.format(command), **kwargs)
+        response = self.parse_response(r.json())
+        return response
+
     def checkisrepo(self):
         """
         Checks a GeoGit repository by running the status command.
@@ -55,52 +65,35 @@ class GeoserverConnector(Connector):
         """
         Creates a transaction in GeoGit.
         """
-        r = self.request(self.repo.url + '/beginTransaction')
-        response = self.parse_response(r.json())
-        return response
+        return self.base_command('beginTransaction')
 
     def ls_tree(self, **kwargs):
         """
         Returns the output of the ls-tree command.
         """
 
-        r = self.request(self.repo.url + '/ls-tree')
-        response = self.parse_response(r.json())
-        return response
+        return self.base_command('ls-tree')
 
     def end_transaction(self, transaction_id, cancel=True):
         """
         Ends a transaction in GeoGit.
         """
         params = self.default_params(transactionId=transaction_id, cancel=cancel)
-        r = self.request(self.repo.url + '/endTransaction', params=params)
-        response = self.parse_response(r.json())
-        return response
+        return self.base_command('endTransaction', params=params)
 
     def status(self):
         """
         Returns the output of the status command.
         """
-        try:
-            r = self.request(self.repo.url + '/status')
-            response = self.parse_response(r.json())
-            return response
-        except Exception, e:
-            print traceback.format_exc()
-            raise GeoGitException("Unable to get the repo status.")
+        return self.base_command('status')
 
     def revparse(self, rev):
         """
         Returns the output of the refparse command.
         """
-        try:
-            url = self.repo.url + '/refparse'
-            r = self.request(url, params=self.default_params(name=rev))
-            response = self.parse_response(r.json()).get('Ref')
-            return response
-        except Exception, e:
-            print traceback.format_exc()
-            raise GeoGitException("Reference %s not found" % rev)
+
+        params = self.default_params(name=rev)
+        return self.base_command('refparse', params=params).get('Ref')
 
     def parse_commit(self, commit):
         """
@@ -126,9 +119,7 @@ class GeoserverConnector(Connector):
         A base method for the push and pull operations.
         """
         kwargs.update(self.default_params(remoteName=remote, ref=ref))
-        r = self.request(self.repo.url + '/{0}'.format(command), params=kwargs)
-        response = self.parse_response(r.json())
-        return response
+        return self.base_command(command, params=kwargs)
 
     def pull(self, remote, ref, **kwargs):
         """
@@ -147,25 +138,13 @@ class GeoserverConnector(Connector):
         Returns the output of the log command.
         """
 
-        try:
-            kwargs.update(self.default_params())
-            r = self.request(self.repo.url + '/log', params=kwargs)
-            response = self.parse_response(r.json())
-            commits = response.get('commit', [])
-            return map(lambda c: self.parse_commit(c), commits)
-
-        except Exception, e:
-            print traceback.format_exc()
-            raise GeoGitException("Unable to retrieve the repositories log.")
+        kwargs.update(self.default_params())
+        response = self.base_command('log', params=kwargs)
+        return map(lambda c: self.parse_commit(c), response.get('commit', []))
 
     def version(self):
         """
         Returns the output of the version command.
         """
-        try:
-            r = self.request(self.repo.url + '/version')
-            return self.parse_response(r.json())
 
-        except Exception, e:
-            print traceback.format_exc()
-            raise GeoGitException("Unable to retrieve version output.")
+        return self.base_command('version')
