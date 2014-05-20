@@ -27,11 +27,12 @@ class GeoserverConnector(Connector):
         """
         return response.get('response')
 
-    def default_params(self):
+    def default_params(self, **kwargs):
         """
         Returns generic parameters used for all requests.
         """
-        return dict(output_format='json')
+        kwargs.setdefault('output_format', 'json')
+        return kwargs
 
     def request(self, url, method='get', **kwargs):
         """
@@ -68,9 +69,7 @@ class GeoserverConnector(Connector):
         """
         try:
             url = self.repo.url + '/refparse'
-            params = self.default_params().copy()
-            params.update(dict(name=rev))
-            r = self.request(url, params=params)
+            r = self.request(url, params=self.default_params(name=rev))
             response = self.parse_response(r.json()).get('Ref')
             return response
         except Exception, e:
