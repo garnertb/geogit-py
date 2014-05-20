@@ -51,6 +51,24 @@ class GeoserverConnector(Connector):
         """
         return self.status().get('success', False)
 
+    def begin_transaction(self):
+        """
+        Creates a transaction in GeoGit.
+        """
+
+        r = self.request(self.repo.url + '/beginTransaction')
+        response = self.parse_response(r.json())
+        return response
+
+    def end_transaction(self, transaction_id, cancel=True):
+        """
+        Ends a transaction in GeoGit.
+        """
+        params = self.default_params(transactionId=transaction_id, cancel=cancel)
+        r = self.request(self.repo.url + '/endTransaction', params=params)
+        response = self.parse_response(r.json())
+        return response
+
     def status(self):
         """
         Returns the output of the status command.

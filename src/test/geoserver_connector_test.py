@@ -62,7 +62,18 @@ class GeoserverConnectorTest(unittest.TestCase):
         self.assertTrue('GitCommitAuthorEmail' in response)
         self.assertTrue('GitCommitMessage' in response)
 
+    def test_transactions(self):
+        """
+        Tests the begin_transaction method.
+        """
 
+        response = self.gs.begin_transaction()
+        self.assertTrue('Transaction' in response)
+        self.assertTrue('ID' in response['Transaction'])
+
+        id = response['Transaction']['ID']
+        response = self.gs.end_transaction(transaction_id=id)
+        self.assertTrue(response.get('success'))
 
 
 if __name__ == '__main__':
