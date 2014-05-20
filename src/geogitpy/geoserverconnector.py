@@ -55,8 +55,16 @@ class GeoserverConnector(Connector):
         """
         Creates a transaction in GeoGit.
         """
-
         r = self.request(self.repo.url + '/beginTransaction')
+        response = self.parse_response(r.json())
+        return response
+
+    def ls_tree(self, **kwargs):
+        """
+        Returns the output of the ls-tree command.
+        """
+
+        r = self.request(self.repo.url + '/ls-tree')
         response = self.parse_response(r.json())
         return response
 

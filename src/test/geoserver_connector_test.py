@@ -95,6 +95,14 @@ class GeoserverConnectorTest(unittest.TestCase):
         self.assertTrue('Fetch' in response['Pull'])
         self.assertTrue(response.get('success'))
 
+    def test_ls_tree(self):
+        """
+        Tests the ls-tree command.
+        """
+        response = self.gs.ls_tree()
+        self.assertTrue('node' in response)
+        self.assertTrue('path' in response['node'][0])
+
 
 if __name__ == '__main__':
     unittest.main()
