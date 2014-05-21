@@ -55,6 +55,12 @@ class GeoserverConnector(Connector):
         response = self.parse_response(r.json())
         return response
 
+    def blame(self, commit, path):
+        """
+        Returns the output of the blame command.
+        """
+        return self.base_command('blame', commit=commit, path=path)
+
     def checkisrepo(self):
         """
         Checks a GeoGit repository by running the status command.

@@ -103,6 +103,14 @@ class GeoserverConnectorTest(unittest.TestCase):
         self.assertTrue('node' in response)
         self.assertTrue('path' in response['node'][0])
 
+    def test_blame(self):
+        """
+        Tests the blame command.
+        """
+        pass
+
+
+
 
 if __name__ == '__main__':
     unittest.main()
