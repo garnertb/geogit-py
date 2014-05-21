@@ -148,6 +148,13 @@ class GeoserverConnector(Connector):
         response = self.base_command('log', params=kwargs)
         return map(lambda c: self.parse_commit(c), response.get('commit', []))
 
+    def statistics(self):
+        """
+        Returns the output of the version command.
+        """
+
+        return self.base_command('statistics')
+
     def version(self):
         """
         Returns the output of the version command.

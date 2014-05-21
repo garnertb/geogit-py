@@ -109,6 +109,16 @@ class GeoserverConnectorTest(unittest.TestCase):
         """
         pass
 
+    def test_statistics(self):
+        """
+        Tests the statistics command.
+        """
+
+        response = self.gs.statistics()
+
+        for key in [u'totalCommits', u'FeatureTypes', u'latestCommit', u'firstCommit', u'Authors']:
+            self.assertTrue(key in response['Statistics'])
+
 
 
 
